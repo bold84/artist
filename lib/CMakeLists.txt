@@ -36,6 +36,8 @@ endif()
 
 if (ARTIST_SKIA)
 
+
+  if(DOWNLOAD_PREBUILT_BINARIES)
    ############################################################################
    # Prebuilt binaries
    ############################################################################
@@ -118,13 +120,31 @@ if (ARTIST_SKIA)
          "${SKIA_LIBRARY}"
          ${CMAKE_DL_LIBS}
          PkgConfig::harfbuzz
-         PkgConfig::fontconfig
+         #PkgConfig::fontconfig
+         ${Fontconfig_LIBRARIES}
          PkgConfig::freetype2
          Threads::Threads
       )
+      
+      
 
    endif()
-
+  else()
+    find_package(skia CONFIG REQUIRED)
+    find_package(Fontconfig REQUIRED)
+    find_package(OpenGL REQUIRED)
+    set(ARTIST_DEPEPENDENCIES
+      skia skia::skia
+      ${OPENGL_glu_LIBRARY}
+         ${OPENGL_gl_LIBRARY}
+         Fontconfig::Fontconfig
+         OpenGL::GL
+         Freetype::Freetype
+    )
+    
+    message("Lib: ${Fontconfig_LIBRARIES}")
+    
+  endif()
 endif()
 
 ###############################################################################
@@ -214,9 +234,9 @@ endif()
 
 add_dependencies(artist libunibreak)
 
-if (ARTIST_SKIA)
-   add_dependencies(artist prebuilt_binaries)
-endif()
+# if (ARTIST_SKIA)
+#    add_dependencies(artist ${ARTIST_DEPEPENDENCIES})
+# endif()
 
 target_sources(artist
    PRIVATE ${ARTIST_SOURCES} ${ARTIST_IMPL}

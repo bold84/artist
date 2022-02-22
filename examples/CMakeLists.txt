@@ -43,6 +43,7 @@ function(add_example name)
          PROPERTIES
          MACOSX_BUNDLE_INFO_PLIST
          ${CMAKE_CURRENT_LIST_DIR}/../resources/macos/plist.in
+         LINK_FLAGS "-Wl,-F/Library/Frameworks"
       )
 
       target_link_options(${name} PRIVATE -framework AppKit)
@@ -53,7 +54,22 @@ function(add_example name)
          PROPERTIES
          MACOSX_PACKAGE_LOCATION Resources
       )
-
+      
+    find_package(Fontconfig REQUIRED)
+    find_package(OpenGL REQUIRED)
+    find_package(Freetype REQUIRED)
+      
+      target_link_libraries(
+         ${name}
+         ${OPENGL_glu_LIBRARY}
+         ${OPENGL_gl_LIBRARY}
+         Fontconfig::Fontconfig
+         OpenGL::GL
+         Freetype::Freetype
+         skia::skia
+      )
+      message("Libs2: ${Fontconfig_LIBRARIES}")
+      
    elseif (MSVC)
 
       add_executable(

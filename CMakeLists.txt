@@ -36,6 +36,8 @@ if (ARTIST_SKIA)
   set(ARTIST_QUARTZ_2D OFF)
 endif()
 
+option(DOWNLOAD_PREBUILT_BINARIES "Download prebuilt binaries for dependencies" OFF)
+
 if (ARTIST_SKIA AND WIN32)
    ExternalProject_Add(windows_dlls
       PREFIX "windows-x64-dll"
