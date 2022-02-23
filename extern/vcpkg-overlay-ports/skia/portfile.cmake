@@ -1,7 +1,7 @@
 vcpkg_from_git(
     OUT_SOURCE_PATH SOURCE_PATH
     URL https://skia.googlesource.com/skia.git
-    REF f6ddffef16f6cdbed2faffdf64452ce0a96a20f0
+    REF fb0b35fed5580d49392df7ce9374551b348fffbf
     #PATCHES add-missing-tuple.patch
 )
 
@@ -111,6 +111,10 @@ skia_enable_spirv_validation=false")
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
   set(OPTIONS "${OPTIONS} target_cpu=\"arm64\"")
+endif()
+
+if(VCPKG_HOST_IS_LINUX)
+  set(OPTIONS "${OPTIONS} cc=\"clang\" cxx=\"clang++\"")
 endif()
 
 # used for passing feature-specific definitions to the config file

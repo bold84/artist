@@ -3,7 +3,7 @@ When building on architectures other than x86/x86_64, vcpkg requires the environ
 
 For Ubuntu aarch64:
 
-sudo apt install autoconf python2 python3 pip 
+sudo apt install build-essential clang autoconf python2 python3 pip 
 sudo pip3 install ninja meson
 
 Installing via pip is necessary because the versions that are available via apt in Ubuntu 20.04 did not meet vcpkg's requirements.
