@@ -130,19 +130,38 @@ if (ARTIST_SKIA)
 
    endif()
   else()
-    find_package(skia CONFIG REQUIRED)
-    find_package(Fontconfig REQUIRED)
-    find_package(OpenGL REQUIRED)
+  
+  find_package(skia REQUIRED)
+  find_package(Fontconfig REQUIRED)
+  find_package(OpenGL REQUIRED)
+  find_package(Freetype REQUIRED)
+  find_package(Harfbuzz REQUIRED)
+  find_package(JPEG REQUIRED)
+  find_package(WebP REQUIRED)
+  find_package(libpng REQUIRED)
+  #find_package(expat)
+  
+    
     set(ARTIST_DEPEPENDENCIES
-      skia skia::skia
-      ${OPENGL_glu_LIBRARY}
-         ${OPENGL_gl_LIBRARY}
-         Fontconfig::Fontconfig
-         OpenGL::GL
-         Freetype::Freetype
+     
+    ${OPENGL_glu_LIBRARY}
+    ${OPENGL_gl_LIBRARY}
+    Fontconfig::Fontconfig
+   #  OpenGL::GL
+    Freetype::Freetype
+    skia skia::skia
+    harfbuzz::harfbuzz
+    png_static
+    #expat::expat
+    WebP::webp
+    #${JPEG_LIBRARIES}
+    /Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/lib/libjpeg.a
+    /Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/lib/libskia.a
+
     )
     
-    message("Lib: ${Fontconfig_LIBRARIES}")
+    message("JPEG LIB: ${JPEG_LIBRARIES}")
+    
     
   endif()
 endif()
@@ -289,10 +308,10 @@ endif()
 
 target_compile_features(artist PUBLIC cxx_std_17)
 
-if (IPO_SUPPORTED AND CMAKE_BUILD_TYPE STREQUAL "Release")
-   message(STATUS "Enabling LTO for artist")
-   set_target_properties(artist PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
+# if (IPO_SUPPORTED AND CMAKE_BUILD_TYPE STREQUAL "Release")
+#    message(STATUS "Enabling LTO for artist")
+#    set_target_properties(artist PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+# endif()
 
 if (NOT MSVC)
    find_package(PkgConfig REQUIRED)

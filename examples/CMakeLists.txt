@@ -37,6 +37,9 @@ function(add_example name)
          ${artist_fonts}
          ${${name}_images}
       )
+      if(ARTIST_SKIA)
+        target_compile_definitions(${name} PRIVATE SK_GL)
+      endif()
 
       set_target_properties(
          ${name}
@@ -55,18 +58,33 @@ function(add_example name)
          MACOSX_PACKAGE_LOCATION Resources
       )
       
-    find_package(Fontconfig REQUIRED)
-    find_package(OpenGL REQUIRED)
-    find_package(Freetype REQUIRED)
+      #find_package(skia REQUIRED)
+      find_package(Fontconfig REQUIRED)
+      find_package(OpenGL REQUIRED)
+      find_package(Freetype REQUIRED)
+      find_package(Harfbuzz REQUIRED)
+      find_package(JPEG REQUIRED)
+      find_package(WebP REQUIRED)
+      find_package(libpng REQUIRED)
       
       target_link_libraries(
          ${name}
+         
+         
          ${OPENGL_glu_LIBRARY}
-         ${OPENGL_gl_LIBRARY}
-         Fontconfig::Fontconfig
-         OpenGL::GL
-         Freetype::Freetype
-         skia::skia
+    ${OPENGL_gl_LIBRARY}
+    Fontconfig::Fontconfig
+   #  OpenGL::GL
+    Freetype::Freetype
+    skia skia::skia
+    harfbuzz::harfbuzz
+    png_static
+    #expat::expat
+    WebP::webp
+    #${JPEG_LIBRARIES}
+    /Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/lib/libjpeg.a
+    /Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/lib/libskia.a
+         
       )
       message("Libs2: ${Fontconfig_LIBRARIES}")
       
