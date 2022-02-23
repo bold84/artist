@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "artist",
+  "version": "0.0.0",
+  "dependencies": [
+    {
+      "name": "skia",
+      "default-features": true
+    }
+  ]
+}

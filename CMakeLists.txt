@@ -4,6 +4,20 @@
 #  Distributed under the MIT License (https://opensource.org/licenses/MIT)
 ###############################################################################
 cmake_minimum_required(VERSION 3.7.2...3.15.0)
+
+if(NOT CMAKE_HOST_SYSTEM_PROCESSOR)
+  EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE CMAKE_HOST_SYSTEM_PROCESSOR)
+endif()
+
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  set(ENV{VCPKG_FORCE_SYSTEM_BINARIES} 1)
+endif()
+
+set(ENV{VCPKG_OVERLAY_PORTS} "${CMAKE_CURRENT_SOURCE_DIR}/extern/vcpkg-overlay-ports")
+
+
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
 project(artist LANGUAGES C CXX)
