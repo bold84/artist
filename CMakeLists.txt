@@ -1,73 +1,209 @@
-###############################################################################
-#  Copyright (c) 2016-2020 Joel de Guzman
+
+# 
+# CMake options
+# 
+
+# CMake version
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
 #
-#  Distributed under the MIT License (https://opensource.org/licenses/MIT)
-###############################################################################
-cmake_minimum_required(VERSION 3.7.2...3.15.0)
-include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+# Configure CMake environment
+#
 
-project(artist LANGUAGES C CXX)
-set(CMAKE_CXX_STANDARD 17)
+# Register general cmake commands
+include(cmake/Custom.cmake)
 
-set(DEFAULT_BUILD_TYPE "Release")
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-   message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
-   set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE
-      STRING "Choose the type of build." FORCE)
-   # Set the possible values of build type for cmake-gui
-   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+# Set policies
+set_policy(CMP0054 NEW) # ENABLE CMP0054: Only interpret if() arguments as variables or keywords when unquoted.
+set_policy(CMP0042 NEW) # ENABLE CMP0042: MACOSX_RPATH is enabled by default.
+set_policy(CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for all target types.
+set_policy(CMP0077 NEW) # ENABLE CMP0077: option() honors normal variables
+
+# Include cmake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(GenerateExportHeader)
+
+set(WriterCompilerDetectionHeaderFound NOTFOUND)
+# This module is only available with CMake >=3.1, so check whether it could be found
+# BUT in CMake 3.1 this module doesn't recognize AppleClang as compiler, so just use it as of CMake 3.2
+if (${CMAKE_VERSION} VERSION_GREATER "3.2")
+    include(WriteCompilerDetectionHeader OPTIONAL RESULT_VARIABLE WriterCompilerDetectionHeaderFound)
 endif()
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT IPO_SUPPORTED)
-if (IPO_SUPPORTED)
-   message(STATUS "Link-time optimization supported. Will be enabled in Release build type")
+# Include custom cmake modules
+include(cmake/Coverage.cmake)
+include(cmake/GenerateTemplateExportHeader.cmake)
+include(cmake/GetGitRevisionDescription.cmake)
+include(cmake/HealthCheck.cmake)
+
+
+# 
+# Project description and (meta) information
+# 
+
+# Get git revision
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
+if(NOT GIT_SHA1)
+    set(GIT_REV "0")
 endif()
 
-if (APPLE)
-  option(ARTIST_QUARTZ_2D "build Artist using quartz 2d on MacOS" ON)
-  option(ARTIST_SKIA "build Artist using skia" OFF)
+# Meta information about the project
+set(META_PROJECT_NAME        "artist")
+set(META_PROJECT_DESCRIPTION "Artist 2D Canvas Library")
+set(META_AUTHOR_ORGANIZATION "")
+set(META_AUTHOR_DOMAIN       "https://github.com/cycfi/artist")
+set(META_AUTHOR_MAINTAINER   "info@ordis.co.th")
+set(META_VERSION_MAJOR       "0")
+set(META_VERSION_MINOR       "0")
+set(META_VERSION_PATCH       "1")
+set(META_VERSION_REVISION    "${GIT_REV}")
+set(META_VERSION             "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
+set(META_NAME_VERSION        "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})")
+set(META_CMAKE_INIT_SHA      "${GIT_REV}")
+
+string(MAKE_C_IDENTIFIER ${META_PROJECT_NAME} META_PROJECT_ID)
+string(TOUPPER ${META_PROJECT_ID} META_PROJECT_ID)
+
+
+# 
+# Project configuration options
+# 
+
+# Project options
+option(BUILD_SHARED_LIBS      "Build shared instead of static libraries."              ON)
+option(OPTION_SELF_CONTAINED  "Create a self-contained install with all dependencies." OFF)
+option(OPTION_BUILD_TESTS     "Build tests."                                           ON)
+option(OPTION_BUILD_DOCS      "Build documentation."                                   OFF)
+option(OPTION_BUILD_EXAMPLES  "Build examples."                                        OFF)
+option(OPTION_ENABLE_COVERAGE "Add coverage information."                              OFF)
+
+
+# 
+# Declare project
+# 
+
+# Generate folders for IDE targets (e.g., VisualStudio solutions)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(IDE_FOLDER "")
+
+# Declare project
+project(${META_PROJECT_NAME} C CXX)
+
+# Set output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+
+# Create version file
+file(WRITE "${PROJECT_BINARY_DIR}/VERSION" "${META_NAME_VERSION}")
+
+
+#
+# Project Health Check Setup
+#
+
+# Add cmake-init template check cmake targets
+add_check_template_target(${META_CMAKE_INIT_SHA})
+
+# Configure health check tools
+enable_cppcheck(ON)
+enable_clang_tidy(ON)
+enable_coverage(${OPTION_ENABLE_COVERAGE})
+
+
+# 
+# Compiler settings and options
+# 
+
+include(cmake/CompileOptions.cmake)
+
+
+# 
+# Deployment/installation setup
+# 
+
+# Get project name
+set(project ${META_PROJECT_NAME})
+
+# Check for system dir install
+set(SYSTEM_DIR_INSTALL FALSE)
+if("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr" OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+    set(SYSTEM_DIR_INSTALL TRUE)
+endif()
+
+# Installation paths
+if(UNIX AND SYSTEM_DIR_INSTALL)
+    # Install into the system (/usr/bin or /usr/local/bin)
+    set(INSTALL_ROOT      "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_CMAKE     "share/${project}/cmake") # /usr/[local]/share/<project>/cmake
+    set(INSTALL_EXAMPLES  "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_DATA      "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_BIN       "bin")                    # /usr/[local]/bin
+    set(INSTALL_SHARED    "lib")                    # /usr/[local]/lib
+    set(INSTALL_LIB       "lib")                    # /usr/[local]/lib
+    set(INSTALL_INCLUDE   "include")                # /usr/[local]/include
+    set(INSTALL_DOC       "share/doc/${project}")   # /usr/[local]/share/doc/<project>
+    set(INSTALL_SHORTCUTS "share/applications")     # /usr/[local]/share/applications
+    set(INSTALL_ICONS     "share/pixmaps")          # /usr/[local]/share/pixmaps
+    set(INSTALL_INIT      "/etc/init")              # /etc/init (upstart init scripts)
 else()
-  option(ARTIST_SKIA "build Artist using skia" ON)
+    # Install into local directory
+    set(INSTALL_ROOT      ".")                      # ./
+    set(INSTALL_CMAKE     "cmake")                  # ./cmake
+    set(INSTALL_EXAMPLES  ".")                      # ./
+    set(INSTALL_DATA      ".")                      # ./
+    set(INSTALL_BIN       ".")                      # ./
+    set(INSTALL_SHARED    "lib")                    # ./lib
+    set(INSTALL_LIB       "lib")                    # ./lib
+    set(INSTALL_INCLUDE   "include")                # ./include
+    set(INSTALL_DOC       "doc")                    # ./doc
+    set(INSTALL_SHORTCUTS "misc")                   # ./misc
+    set(INSTALL_ICONS     "misc")                   # ./misc
+    set(INSTALL_INIT      "misc")                   # ./misc
 endif()
 
-if (ARTIST_SKIA)
-  set(ARTIST_QUARTZ_2D OFF)
+# Set runtime path
+set(CMAKE_SKIP_BUILD_RPATH            FALSE) # Add absolute path to all dependencies for BUILD
+set(CMAKE_BUILD_WITH_INSTALL_RPATH    FALSE) # Use CMAKE_INSTALL_RPATH for INSTALL
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # Do NOT add path to dependencies for INSTALL
+
+if(NOT SYSTEM_DIR_INSTALL)
+    # Find libraries relative to binary
+    if(APPLE)
+        set(EXECUTABLE_INSTALL_RPATH "@loader_path/../../../${INSTALL_LIB}")
+        set(LIBRARY_INSTALL_RPATH    "@loader_path/../../../${INSTALL_LIB}")
+    else()
+        set(EXECUTABLE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB}")
+        set(LIBRARY_INSTALL_RPATH    "$ORIGIN")
+    endif()
 endif()
 
-if (ARTIST_SKIA AND WIN32)
-   ExternalProject_Add(windows_dlls
-      PREFIX "windows-x64-dll"
-      URL https://github.com/cycfi/artist/releases/download/prebuilt-binaries/windows-x64-dll.zip
-      URL_MD5 4c07a5aa4bfddff268535244196f900f
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
-      INSTALL_COMMAND ""
-   )
-   set(FONTCONFIG_DLL ${CMAKE_CURRENT_BINARY_DIR}/windows-x64-dll/src/windows_dlls/fontconfig.dll)
-   set(ICONV_DLL ${CMAKE_CURRENT_BINARY_DIR}/windows-x64-dll/src/windows_dlls/libiconv.dll)
-   set(XML2_DLL ${CMAKE_CURRENT_BINARY_DIR}/windows-x64-dll/src/windows_dlls/libxml2.dll)
-   set(FREETYPE_DLL ${CMAKE_CURRENT_BINARY_DIR}/windows-x64-dll/src/windows_dlls/freetype.dll)
-endif()
 
-if (ARTIST_SKIA AND WIN32)
-   message(STATUS "Building Artist lib for Win32 with Skia.")
-elseif (ARTIST_SKIA AND APPLE)
-   message(STATUS "Building Artist lib for MacOS with Skia.")
-elseif (ARTIST_QUARTZ_2D AND APPLE)
-   message(STATUS "Building Artist lib for MacOS with Quartz2D.")
-endif()
+# 
+# Project modules
+# 
 
-add_subdirectory(lib)
+add_subdirectory(source)
+add_subdirectory(docs)
+add_subdirectory(deploy)
 
-option(ARTIST_BUILD_EXAMPLES "build Artist library examples" ON)
-option(ARTIST_BUILD_TESTS "build Artist library tests" ON)
 
-if (ARTIST_BUILD_EXAMPLES)
-   add_subdirectory(examples)
-endif()
+# 
+# Deployment (global project files)
+# 
 
-if (ARTIST_BUILD_TESTS)
-   add_subdirectory(test)
-endif()
+# Install version file
+install(FILES "${PROJECT_BINARY_DIR}/VERSION" DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+
+# Install cmake find script for the project
+install(FILES ${META_PROJECT_NAME}-config.cmake DESTINATION ${INSTALL_ROOT} COMPONENT dev)
+
+# Install the project meta files
+install(FILES AUTHORS   DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+install(FILES LICENSE   DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+install(FILES README.md DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+
+# Install runtime data
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data DESTINATION ${INSTALL_DATA} COMPONENT runtime)
