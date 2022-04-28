@@ -5,14 +5,14 @@
 =============================================================================*/
 #include <artist/image.hpp>
 
-#include <skia/core/SkBitmap.h>
-#include <skia/codec/SkCodec.h>
-#include <skia/core/SkData.h>
-#include <skia/core/SkImage.h>
-#include <skia/core/SkPicture.h>
-#include <skia/core/SkSurface.h>
-#include <skia/core/SkCanvas.h>
-#include <skia/core/SkPictureRecorder.h>
+#include <skia/include/core/SkBitmap.h>
+#include <skia/include/codec/SkCodec.h>
+#include <skia/include/core/SkData.h>
+#include <skia/include/core/SkImage.h>
+#include <skia/include/core/SkPicture.h>
+#include <skia/include/core/SkSurface.h>
+#include <skia/include/core/SkCanvas.h>
+#include <skia/include/core/SkPictureRecorder.h>
 
 #include "opaque.hpp"
 #include <stdexcept>
@@ -149,10 +149,13 @@ namespace cycfi::artist
             {
                sk_canvas->drawPicture(that);
             }
+            // TODO: error: no member named 'drawBitmap' in 'SkCanvas'
+            /*
             if constexpr(std::is_same_v<T, SkBitmap>)
             {
                sk_canvas->drawBitmap(that, 0, 0);
             }
+            */
          };
 
       std::visit(draw_picture, _impl->base());

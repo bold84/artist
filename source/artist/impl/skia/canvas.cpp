@@ -8,19 +8,19 @@
 #include <stack>
 #include "opaque.hpp"
 
-#include <skia/core/SkBitmap.h>
-#include <skia/core/SkData.h>
-#include <skia/core/SkImage.h>
-#include <skia/core/SkPicture.h>
-#include <skia/core/SkSurface.h>
-#include <skia/core/SkCanvas.h>
-#include <skia/core/SkPath.h>
-#include <skia/effects/SkGradientShader.h>
-#include <skia/core/SkImageFilter.h>
-//#include <skia/core/SkDropShadowImageFilter.h>
-#include <skia/core/SkTextBlob.h>
-#include <skia/core/SkTypeface.h>
-#include <skia/core/SkFont.h>
+#include <skia/include/core/SkBitmap.h>
+#include <skia/include/core/SkData.h>
+#include <skia/include/core/SkImage.h>
+#include <skia/include/core/SkPicture.h>
+#include <skia/include/core/SkSurface.h>
+#include <skia/include/core/SkCanvas.h>
+#include <skia/include/core/SkPath.h>
+#include <skia/include/effects/SkGradientShader.h>
+#include <skia/include/core/SkImageFilter.h>
+//#include <skia/include/core/SkDropShadowImageFilter.h>
+#include <skia/include/core/SkTextBlob.h>
+#include <skia/include/core/SkTypeface.h>
+#include <skia/include/core/SkFont.h>
 
 namespace cycfi::artist
 {
@@ -394,13 +394,15 @@ namespace cycfi::artist
       _state->stroke_paint().setStrokeMiter(limit);
    }
 
-   void canvas::shadow_style(point offset, float blur, color c)
+   void canvas::shadow_style([[maybe_unused]]point offset, [[maybe_unused]]float blur, [[maybe_unused]]color c)
    {
+     /*
       constexpr auto blur_factor = 0.4f;
 
       auto matrix = _context->getTotalMatrix();
       auto scx = matrix.getScaleX() / _state->_pre_scale;
       auto scy = matrix.getScaleY() / _state->_pre_scale;
+     */
 
 // TODO: Find alternative for SkDropShadowImageFilter
 /*

@@ -6,16 +6,13 @@
 message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # find_package(THIRDPARTY REQUIRED)
+#find_package(skia CONFIG REQUIRED)
 find_package(harfbuzz CONFIG REQUIRED)
 find_package(fontconfig REQUIRED)
 find_package(WebP CONFIG REQUIRED)
 find_package(expat CONFIG REQUIRED)
 find_package(JPEG REQUIRED)
-find_package(opengl REQUIRED)
-find_package(skia CONFIG REQUIRED)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUNIBREAK REQUIRED libunibreak)
+#find_package(skia REQUIRED)
 
 # 
 # Library name and options
@@ -45,41 +42,12 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(source_path  "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(headers
-    ${include_path}/artist/affine_transform.hpp
-    ${include_path}/artist/canvas.hpp
-    ${include_path}/artist/circle.hpp
-    ${include_path}/artist/color.hpp
-    ${include_path}/artist/detail
-    ${include_path}/artist/font.hpp
-    ${include_path}/artist/image.hpp
-    ${include_path}/artist/path.hpp
-    ${include_path}/artist/point.hpp
-    ${include_path}/artist/rect.hpp
-    ${include_path}/artist/resources.hpp
-    ${include_path}/artist/text_layout.hpp
+
     
 )
 
 set(sources
-
-    ${source_path}/artist/rect.cpp
-    ${source_path}/artist/resources.cpp
-    ${source_path}/artist/svg_path.cpp
-    
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/canvas.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/image.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/font.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/text_layout.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/path.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/detail/harfbuzz.cpp
-    
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/WindowContext.cpp
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/GLWindowContext.cpp
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/mac/GLWindowContext_mac.mm
-    
-    ${CMAKE_CURRENT_SOURCE_DIR}/host/macos/skia_app.mm
-    
-    
+    ${source_path}/main.cpp
     
 )
 
@@ -96,14 +64,14 @@ source_group_by_path(${source_path}  "\\\\.cpp$|\\\\.c$|\\\\.h$|\\\\.hpp$"
 # Create library
 # 
 
-# Build library
-add_library(${target}
+# Build executable
+add_executable(${target}
+    MACOSX_BUNDLE
     ${sources}
-    ${headers}
 )
 
 # Create namespaced alias
-add_library(${META_PROJECT_NAME}::${target} ALIAS ${target})
+add_executable(${META_PROJECT_NAME}::${target} ALIAS ${target})
 
 # Export library for downstream projects
 export(TARGETS ${target} NAMESPACE ${META_PROJECT_NAME}:: FILE ${PROJECT_BINARY_DIR}/cmake/${target}/${target}-export.cmake)
@@ -145,11 +113,6 @@ generate_template_export_header(${target}
 # Project options
 # 
 
-# if (IPO_SUPPORTED AND CMAKE_BUILD_TYPE STREQUAL "Release")
-#    message(STATUS "Enabling LTO for artist")
-#    set_target_properties(artist PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
-# endif()
-
 set_target_properties(${target}
     PROPERTIES
     ${DEFAULT_PROJECT_OPTIONS}
@@ -157,7 +120,6 @@ set_target_properties(${target}
     FOLDER "${IDE_FOLDER}"
     VERSION "${META_VERSION}"
     SOVERSION "${META_VERSION_MAJOR}"
-    #INTERPROCEDURAL_OPTIMIZATION $<$<CONFIG:Debug>:false_string,true_string>
 )
 
 
@@ -174,8 +136,6 @@ target_include_directories(${target}
     ${CMAKE_CURRENT_SOURCE_DIR}/infra/include
     
     ${JPEG_INCLUDE_DIR}
-    
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
@@ -192,14 +152,13 @@ target_include_directories(${target}
 # 
 
 set(PLATFORM_SPECIFIC_LIBRARIES)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND PLATFORM_SPECIFIC_LIBRARIES
-        #"-framework Foundation"
-        #"-framework AppKit"
+        "-framework Foundation"
+        "-framework AppKit"
         "-framework ApplicationServices"
-        #"-framework Metal"
-        "-framework Cocoa"
-        "-framework CocoaPods"
+        "-framework Metal"
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -214,13 +173,11 @@ target_link_libraries(${target}
     skia
     harfbuzz
     ${Fontconfig_LIBRARIES}
+    libunibreak
     
     WebP::webp WebP::webpdemux WebP::libwebpmux WebP::webpdecoder
     expat::expat
     ${JPEG_LIBRARIES}
-    ${OPENGL_LIBRARIES}
-    ${LIBUNIBREAK_LIBRARIES}
-    
     ${PLATFORM_SPECIFIC_LIBRARIES}
     
     PUBLIC
@@ -233,13 +190,8 @@ target_link_libraries(${target}
 # Compile definitions
 # 
 
-set(ARTIST_COMPILE_DEFINITIONS
-  
-)
+set(ARTIST_COMPILE_DEFINITIONS)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    list(APPEND ARTIST_COMPILE_DEFINITIONS
-        GL_SILENCE_DEPRECATION
-    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     list(APPEND ARTIST_COMPILE_DEFINITIONS
         WIN32_LEAN_AND_MEAN
@@ -257,13 +209,18 @@ target_compile_definitions(${target}
 
     PUBLIC
     ${ARTIST_COMPILE_DEFINITIONS}
-    ARTIST_DEBUG=$<$<CONFIG:Debug>:true_string,false_string>
     
     $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:${target_id}_STATIC_DEFINE>
     
     ${DEFAULT_COMPILE_DEFINITIONS}
     ARTIST_SKIA
-
+    SK_RELEASE
+    
+    SK_GL
+    #SK_VULKAN
+    SK_METAL
+    #SK_DIRECT3D
+    #SK_DAWN
     
     
     INTERFACE
@@ -278,9 +235,7 @@ set(ARTIST_COMPILE_OPTIONS)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     list(APPEND ARTIST_COMPILE_OPTIONS 
         "-ftemplate-backtrace-limit=0"
-        #$<$<CXX_COMPILER_ID:AppleClang>:-fobjc-arc>
-        
-        "-Wno-unused-parameter" #temporary
+        $<$<CXX_COMPILER_ID:AppleClang>:"-fobjc-arc">
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     list(APPEND ARTIST_COMPILE_OPTIONS
@@ -298,7 +253,6 @@ endif()
 target_compile_options(${target}
     PRIVATE
         ${DEFAULT_COMPILE_OPTIONS}
-        ${ARTIST_COMPILE_OPTIONS}
         ${Fontconfig_COMPILE_OPTIONS}
     
     PUBLIC
@@ -311,7 +265,8 @@ target_compile_options(${target}
 # 
 # Linker options
 # 
-target_link_options(${target}
+
+target_link_libraries(${target}
     PRIVATE
 
     PUBLIC
@@ -323,7 +278,7 @@ target_link_options(${target}
 target_link_directories(${target}
   PRIVATE
     # TODO: must me corrected
-    ${LIBUNIBREAK_LIBDIR}
+    "/Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/debug/lib"
 
 )
 
@@ -342,29 +297,8 @@ perform_health_checks(
 # Deployment
 # 
 
-# Library
+# Executable
 install(TARGETS ${target}
-    EXPORT  "${target}-export"            COMPONENT dev
-    RUNTIME DESTINATION ${INSTALL_BIN}    COMPONENT runtime
-    LIBRARY DESTINATION ${INSTALL_SHARED} COMPONENT runtime
-    ARCHIVE DESTINATION ${INSTALL_LIB}    COMPONENT dev
-)
-
-# Header files
-install(DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/${target} DESTINATION ${INSTALL_INCLUDE}
-    COMPONENT dev
-)
-
-# Generated header files
-install(DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR}/include/${target} DESTINATION ${INSTALL_INCLUDE}
-    COMPONENT dev
-)
-
-# CMake config
-install(EXPORT ${target}-export
-    NAMESPACE   ${META_PROJECT_NAME}::
-    DESTINATION ${INSTALL_CMAKE}/${target}
-    COMPONENT   dev
+    RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT examples
+    BUNDLE  DESTINATION ${INSTALL_BIN} COMPONENT examples
 )

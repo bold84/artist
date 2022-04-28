@@ -4,8 +4,8 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include "harfbuzz.hpp"
-#include <skia/core/SkStream.h>
-#include <skia/core/SkTypeface.h>
+#include <skia/include/core/SkStream.h>
+#include <skia/include/core/SkTypeface.h>
 #include <cmath>
 
 #if defined(_MSC_VER)

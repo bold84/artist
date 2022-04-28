@@ -9,9 +9,9 @@
 #include <artist/canvas.hpp>
 #include <infra/utf8_utils.hpp>
 #include <vector>
-#include <skia/core/SkFont.h>
-#include <skia/core/SkTextBlob.h>
-#include <skia/core/SkCanvas.h>
+#include <skia/include/core/SkFont.h>
+#include <skia/include/core/SkTextBlob.h>
+#include <skia/include/core/SkCanvas.h>
 #include "detail/harfbuzz.hpp"
 #include "linebreak.h"
 #include "wordbreak.h"

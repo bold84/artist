@@ -6,9 +6,9 @@
 #if !defined(ARTIST_SKIA_OPAQUE_MARCH_22_2020)
 #define ARTIST_SKIA_OPAQUE_MARCH_22_2020
 
-#include <skia/core/SkImage.h>
-#include <skia/core/SkPicture.h>
-#include <skia/core/SkBitmap.h>
+#include <skia/include/core/SkImage.h>
+#include <skia/include/core/SkPicture.h>
+#include <skia/include/core/SkBitmap.h>
 #include <variant>
 
 namespace cycfi::artist

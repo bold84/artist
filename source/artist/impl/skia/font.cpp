@@ -4,11 +4,11 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #include <artist/font.hpp>
-#include <skia/core/SkTypeface.h>
-#include <skia/core/SkFont.h>
+#include <skia/include/core/SkTypeface.h>
+#include <skia/include/core/SkFont.h>
 #include <sstream>
-#include <skia/core/SkFontMetrics.h>
-#include <skia/core/SkFontMgr.h>
+#include <skia/include/core/SkFontMetrics.h>
+#include <skia/include/core/SkFontMgr.h>
 #include <infra/filesystem.hpp>
 #include <infra/support.hpp>
 
@@ -20,7 +20,7 @@
 # include <Windows.h>
 # include "sysinfoapi.h"
 # include "tchar.h"
-# include <skia/ports/SkTypeface_win.h>
+# include <skia/include/ports/SkTypeface_win.h>
 # endif
 
 namespace cycfi::artist

@@ -5,7 +5,7 @@
 =============================================================================*/
 #include <infra/support.hpp>
 #include <artist/path.hpp>
-#include <skia/core/SkPath.h>
+#include <skia/include/core/SkPath.h>
 
 namespace cycfi::artist
 {

@@ -195,7 +195,7 @@ namespace cycfi::artist
       struct path_builder
       {
          path& _path;
-         point p, prev_cp, prev_qp;
+         point p{}, prev_cp{}, prev_qp{};
 
          void move_to(char const*& s, bool abs)
          {
