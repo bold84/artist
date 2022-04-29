@@ -14,8 +14,10 @@ find_package(JPEG REQUIRED)
 find_package(opengl REQUIRED)
 find_package(skia CONFIG REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUNIBREAK REQUIRED libunibreak)
+find_package(libunibreak CONFIG REQUIRED)
+
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(LIBUNIBREAK REQUIRED libunibreak)
 
 # 
 # Library name and options
@@ -57,6 +59,9 @@ set(headers
     ${include_path}/artist/rect.hpp
     ${include_path}/artist/resources.hpp
     ${include_path}/artist/text_layout.hpp
+    ${include_path}/artist/detail/canvas_impl.hpp
+    
+    
     
 )
 
@@ -199,7 +204,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         "-framework ApplicationServices"
         #"-framework Metal"
         "-framework Cocoa"
-        "-framework CocoaPods"
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -211,15 +215,18 @@ endif()
 
 target_link_libraries(${target}
     PRIVATE
-    skia
-    harfbuzz
+    skia::skia
+    harfbuzz::harfbuzz
     ${Fontconfig_LIBRARIES}
     
-    WebP::webp WebP::webpdemux WebP::libwebpmux WebP::webpdecoder
+    WebP::webp 
+    WebP::webpdemux 
+    WebP::libwebpmux 
+    WebP::webpdecoder
     expat::expat
     ${JPEG_LIBRARIES}
     ${OPENGL_LIBRARIES}
-    ${LIBUNIBREAK_LIBRARIES}
+    libunibreak::libunibreak
     
     ${PLATFORM_SPECIFIC_LIBRARIES}
     
