@@ -6,20 +6,22 @@
 message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # find_package(THIRDPARTY REQUIRED)
-#find_package(skia CONFIG REQUIRED)
 find_package(harfbuzz CONFIG REQUIRED)
-find_package(fontconfig REQUIRED)
+find_package(Fontconfig REQUIRED)
 find_package(WebP CONFIG REQUIRED)
 find_package(expat CONFIG REQUIRED)
 find_package(JPEG REQUIRED)
-#find_package(skia REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(skia CONFIG REQUIRED)
+
+find_package(libunibreak CONFIG REQUIRED)
 
 # 
 # Library name and options
 # 
 
 # Target name
-set(target artist)
+set(target mytest)
 
 # Exit here if required dependencies are not met
 message(STATUS "Lib ${target}")
@@ -42,12 +44,27 @@ set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(source_path  "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(headers
-
+    ${include_path}/HelloWorld.h
     
 )
 
 set(sources
-    ${source_path}/main.cpp
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/Window.cpp
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/WindowContext.cpp
+    
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/MetalWindowContext.mm
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/MetalWindowContext_mac.mm
+    
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
+
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/Window_mac.mm
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/main_mac.mm
+  
+
+    ${source_path}/HelloWorld.cpp
+    #${source_path}/main.cpp
     
 )
 
@@ -98,15 +115,15 @@ export(TARGETS ${target} NAMESPACE ${META_PROJECT_NAME}:: FILE ${PROJECT_BINARY_
 # endif()
 
 # Create API export header
-generate_export_header(${target}
-    EXPORT_FILE_NAME  ${export_file}
-    EXPORT_MACRO_NAME ${export_macro}
-)
+# generate_export_header(${target}
+#     EXPORT_FILE_NAME  ${export_file}
+#     EXPORT_MACRO_NAME ${export_macro}
+# )
 
-generate_template_export_header(${target}
-    ${target_id}
-    ${template_export_file}
-)
+# generate_template_export_header(${target}
+#     ${target_id}
+#     ${template_export_file}
+# )
 
 
 # 
@@ -136,6 +153,8 @@ target_include_directories(${target}
     ${CMAKE_CURRENT_SOURCE_DIR}/infra/include
     
     ${JPEG_INCLUDE_DIR}
+    
+    ${SKIA_INCLUDE_DIR}
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
@@ -152,13 +171,14 @@ target_include_directories(${target}
 # 
 
 set(PLATFORM_SPECIFIC_LIBRARIES)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND PLATFORM_SPECIFIC_LIBRARIES
-        "-framework Foundation"
-        "-framework AppKit"
+        #"-framework Foundation"
+        #"-framework AppKit"
+        "-framework QuartzCore"
         "-framework ApplicationServices"
         "-framework Metal"
+        "-framework Cocoa"
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -170,14 +190,19 @@ endif()
 
 target_link_libraries(${target}
     PRIVATE
-    skia
-    harfbuzz
+    skia::skia
+    harfbuzz::harfbuzz
     ${Fontconfig_LIBRARIES}
-    libunibreak
     
-    WebP::webp WebP::webpdemux WebP::libwebpmux WebP::webpdecoder
+    WebP::webp 
+    WebP::webpdemux 
+    WebP::libwebpmux 
+    WebP::webpdecoder
     expat::expat
     ${JPEG_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    libunibreak::libunibreak
+    
     ${PLATFORM_SPECIFIC_LIBRARIES}
     
     PUBLIC
@@ -216,7 +241,7 @@ target_compile_definitions(${target}
     ARTIST_SKIA
     SK_RELEASE
     
-    SK_GL
+    #SK_GL
     #SK_VULKAN
     SK_METAL
     #SK_DIRECT3D
