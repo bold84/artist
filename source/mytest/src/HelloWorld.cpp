@@ -7,11 +7,11 @@
 
 #include "HelloWorld.h"
 
-#include "skia/core/SkCanvas.h"
-#include "skia/core/SkFont.h"
-#include "skia/core/SkGraphics.h"
-#include "skia/core/SkSurface.h"
-#include "skia/effects/SkGradientShader.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkFont.h"
+#include "include/core/SkGraphics.h"
+#include "include/core/SkSurface.h"
+#include "include/effects/SkGradientShader.h"
 
 using namespace sk_app;
 
@@ -20,7 +20,9 @@ Application* Application::Create(int argc, char** argv, void* platformData) {
 }
 
 HelloWorld::HelloWorld(int argc, char** argv, void* platformData)
-#if defined(SK_GL)
+#if defined(SK_METAL)
+        : fBackendType(Window::kMetal_BackendType),
+#elif defined(SK_GL)
         : fBackendType(Window::kNativeGL_BackendType),
 #elif defined(SK_VULKAN)
         : fBackendType(Window::kVulkan_BackendType),
@@ -55,7 +57,9 @@ void HelloWorld::updateTitle() {
     if (Window::kRaster_BackendType == fBackendType) {
         title.append("Raster");
     } else {
-#if defined(SK_GL)
+#if defined(SK_METAL)
+        title.append("Metal");
+#elif defined(SK_GL)
         title.append("GL");
 #elif defined(SK_VULKAN)
         title.append("Vulkan");
@@ -133,7 +137,9 @@ void HelloWorld::onIdle() {
 bool HelloWorld::onChar(SkUnichar c, skui::ModifierKey modifiers) {
     if (' ' == c) {
         if (Window::kRaster_BackendType == fBackendType) {
-#if defined(SK_GL)
+#if defined(SK_METAL)
+            fBackendType = Window::kMetal_BackendType;
+#elif defined(SK_GL)
             fBackendType = Window::kNativeGL_BackendType;
 #elif defined(SK_VULKAN)
             fBackendType = Window::kVulkan_BackendType;

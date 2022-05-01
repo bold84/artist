@@ -7,11 +7,11 @@ message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # find_package(THIRDPARTY REQUIRED)
 find_package(harfbuzz CONFIG REQUIRED)
-find_package(fontconfig REQUIRED)
+find_package(Fontconfig REQUIRED)
 find_package(WebP CONFIG REQUIRED)
 find_package(expat CONFIG REQUIRED)
 find_package(JPEG REQUIRED)
-find_package(opengl REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(skia CONFIG REQUIRED)
 
 find_package(libunibreak CONFIG REQUIRED)
