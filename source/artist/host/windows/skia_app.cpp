@@ -3,7 +3,7 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#include "../../app.hpp"
+#include "../app.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -13,13 +13,14 @@
 #include <windows.h>
 #include <gl/gl.h>
 
-#include <GrContext.h>
-#include <gl/GrGLInterface.h>
-#include <SkImage.h>
-#include <SkSurface.h>
-#include <tools/sk_app/DisplayParams.h>
-#include <tools/sk_app/WindowContext.h>
-#include <tools/sk_app/win/WindowContextFactory_win.h>
+#include <skia/include/gpu/GrDirectContext.h>
+#include <skia/include/gpu/gl/GrGLInterface.h>
+#include <skia/include/core/SkImage.h>
+#include <skia/include/core/SkSurface.h>
+#include <skia/include/core/SkCanvas.h>
+#include <skia/tools/sk_app/DisplayParams.h>
+#include <skia/tools/sk_app/WindowContext.h>
+#include <skia/tools/sk_app/win/WindowContextFactory_win.h>
 
 #include <ShellScalingAPI.h>
 

@@ -7,11 +7,11 @@ message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # find_package(THIRDPARTY REQUIRED)
 find_package(harfbuzz CONFIG REQUIRED)
-find_package(fontconfig REQUIRED)
+find_package(Fontconfig REQUIRED)
 find_package(WebP CONFIG REQUIRED)
 find_package(expat CONFIG REQUIRED)
 find_package(JPEG REQUIRED)
-find_package(opengl REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(skia CONFIG REQUIRED)
 
 find_package(libunibreak CONFIG REQUIRED)
@@ -59,7 +59,7 @@ set(headers
     ${include_path}/artist/rect.hpp
     ${include_path}/artist/resources.hpp
     ${include_path}/artist/text_layout.hpp
-    ${include_path}/artist/detail/canvas_impl.hpp
+    #${include_path}/artist/detail/canvas_impl.hpp
     
     
     
@@ -78,11 +78,15 @@ set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/path.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/detail/harfbuzz.cpp
     
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/WindowContext.cpp
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/GLWindowContext.cpp
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia/tools/sk_app/mac/GLWindowContext_mac.mm
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/WindowContext.cpp
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/host/macos/skia_app.mm
+    
+    #${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
+    #${CMAKE_CURRENT_SOURCE_DIR}/host/macos/skia_app.mm
+    
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/win/GLWindowContext_win.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/host/windows/skia_app.cpp
     
     
     
@@ -103,8 +107,8 @@ source_group_by_path(${source_path}  "\\\\.cpp$|\\\\.c$|\\\\.h$|\\\\.hpp$"
 
 # Build library
 add_library(${target}
-    ${sources}
     ${headers}
+    ${sources}
 )
 
 # Create namespaced alias
@@ -179,8 +183,6 @@ target_include_directories(${target}
     ${CMAKE_CURRENT_SOURCE_DIR}/infra/include
     
     ${JPEG_INCLUDE_DIR}
-    
-    /Users/ben/Development/Temp/vcpkg/packages/skia_arm64-osx/include/skia
 
     PUBLIC
     ${DEFAULT_INCLUDE_DIRECTORIES}
@@ -226,6 +228,8 @@ target_link_libraries(${target}
     expat::expat
     ${JPEG_LIBRARIES}
     ${OPENGL_LIBRARIES}
+    
+    
     libunibreak::libunibreak
     
     ${PLATFORM_SPECIFIC_LIBRARIES}

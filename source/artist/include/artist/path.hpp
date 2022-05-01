@@ -236,7 +236,7 @@ namespace cycfi::artist
 // What a !@#$ waste of time, Microsoft!!!
 
 #if defined(ARTIST_SKIA) && defined(_WIN32)
-#include <skia/core/SkPath.h>
+#include <skia/include/core/SkPath.h>
 
 namespace cycfi::artist
 {
