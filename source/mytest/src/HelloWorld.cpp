@@ -83,7 +83,7 @@ void HelloWorld::onPaint(SkSurface* surface) {
     auto canvas = surface->getCanvas();
 
     // Clear background
-    canvas->clear(SK_ColorWHITE);
+    canvas->clear(SK_ColorGRAY);
 
     SkPaint paint;
     paint.setColor(SK_ColorRED);
@@ -109,11 +109,11 @@ void HelloWorld::onPaint(SkSurface* surface) {
     // Draw a message with a nice black paint
     SkFont font;
     font.setSubpixel(true);
-    font.setSize(20);
+    font.setSize(35);
     paint.setColor(SK_ColorBLACK);
 
     canvas->save();
-    static const char message[] = "Hello World ";
+    static const char message[] = "This is a test ";
 
     // Translate and rotate
     canvas->translate(300, 300);

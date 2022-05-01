@@ -55,10 +55,10 @@ set(sources
     ${SKIA_INCLUDE_DIR}/tools/sk_app/MetalWindowContext.mm
     ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/MetalWindowContext_mac.mm
     
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
-    
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
+    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
+
     ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/Window_mac.mm
     ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/main_mac.mm
   
