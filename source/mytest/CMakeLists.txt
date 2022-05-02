@@ -48,21 +48,51 @@ set(headers
     
 )
 
+set(PLATFORM_SPECIFIC_SOURCES)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND PLATFORM_SPECIFIC_SOURCES
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/MetalWindowContext.mm
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/MetalWindowContext_mac.mm
+        
+        # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
+        # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
+
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/Window_mac.mm
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/main_mac.mm
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND PLATFORM_SPECIFIC_SOURCES
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/D3D12WindowContext_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/RasterWindowContext_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/GLWindowContext_win.cpp
+        
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/Window_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/main_win.cpp
+        
+        ${SKIA_INCLUDE_DIR}/tools/gpu/d3d/D3DTestUtils.cpp
+        ${SKIA_INCLUDE_DIR}/src/gpu/ganesh/gl/GrGlUtil.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkUtils.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkIDChangeListener.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkUnPreMultiply.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkMatrix.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkString.cpp
+        ${SKIA_INCLUDE_DIR}/src/utils/win/SkWGL_win.cpp
+        
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+endif()
+
+
 set(sources
     ${SKIA_INCLUDE_DIR}/tools/sk_app/Window.cpp
     ${SKIA_INCLUDE_DIR}/tools/sk_app/WindowContext.cpp
     
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/MetalWindowContext.mm
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/MetalWindowContext_mac.mm
-    
-    # ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
-    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
-    # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
-
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/Window_mac.mm
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/main_mac.mm
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
   
-
+    ${PLATFORM_SPECIFIC_SOURCES}
     ${source_path}/HelloWorld.cpp
     #${source_path}/main.cpp
     
@@ -83,7 +113,8 @@ source_group_by_path(${source_path}  "\\\\.cpp$|\\\\.c$|\\\\.h$|\\\\.hpp$"
 
 # Build executable
 add_executable(${target}
-    MACOSX_BUNDLE
+#    MACOSX_BUNDLE
+    WIN32
     ${sources}
 )
 
@@ -91,7 +122,7 @@ add_executable(${target}
 add_executable(${META_PROJECT_NAME}::${target} ALIAS ${target})
 
 # Export library for downstream projects
-export(TARGETS ${target} NAMESPACE ${META_PROJECT_NAME}:: FILE ${PROJECT_BINARY_DIR}/cmake/${target}/${target}-export.cmake)
+#export(TARGETS ${target} NAMESPACE ${META_PROJECT_NAME}:: FILE ${PROJECT_BINARY_DIR}/cmake/${target}/${target}-export.cmake)
 
 # Create feature detection header
 # Compilers: https://cmake.org/cmake/help/v3.1/variable/CMAKE_LANG_COMPILER_ID.html#variable:CMAKE_%3CLANG%3E_COMPILER_ID
@@ -133,10 +164,6 @@ export(TARGETS ${target} NAMESPACE ${META_PROJECT_NAME}:: FILE ${PROJECT_BINARY_
 set_target_properties(${target}
     PROPERTIES
     ${DEFAULT_PROJECT_OPTIONS}
-    INSTALL_RPATH "${LIBRARY_INSTALL_RPATH}"
-    FOLDER "${IDE_FOLDER}"
-    VERSION "${META_VERSION}"
-    SOVERSION "${META_VERSION_MAJOR}"
 )
 
 
@@ -201,6 +228,7 @@ target_link_libraries(${target}
     expat::expat
     ${JPEG_LIBRARIES}
     ${OPENGL_LIBRARIES}
+    
     libunibreak::libunibreak
     
     ${PLATFORM_SPECIFIC_LIBRARIES}
@@ -217,15 +245,28 @@ target_link_libraries(${target}
 
 set(ARTIST_COMPILE_DEFINITIONS)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_MAC
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     list(APPEND ARTIST_COMPILE_DEFINITIONS
         WIN32_LEAN_AND_MEAN
         NOMINMAX
         _UNICODE
+        SK_BUILD_FOR_WIN
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_UNIX
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_IOS
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_ANDROID
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 endif()
 
@@ -235,15 +276,14 @@ target_compile_definitions(${target}
     PUBLIC
     ${ARTIST_COMPILE_DEFINITIONS}
     
-    $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:${target_id}_STATIC_DEFINE>
+#    $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:${target_id}_STATIC_DEFINE>
     
     ${DEFAULT_COMPILE_DEFINITIONS}
     ARTIST_SKIA
-    SK_RELEASE
     
     #SK_GL
     #SK_VULKAN
-    SK_METAL
+    #SK_METAL
     #SK_DIRECT3D
     #SK_DAWN
     
@@ -271,6 +311,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         "/wd4018"
         "/wd5030"
         "/wd4201"
+        "/wd4100"
         "/utf-8"
     )
 endif()
@@ -278,6 +319,7 @@ endif()
 target_compile_options(${target}
     PRIVATE
         ${DEFAULT_COMPILE_OPTIONS}
+        ${ARTIST_COMPILE_OPTIONS}
         ${Fontconfig_COMPILE_OPTIONS}
     
     PUBLIC
@@ -303,7 +345,7 @@ target_link_libraries(${target}
 target_link_directories(${target}
   PRIVATE
     # TODO: must me corrected
-    "/Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/debug/lib"
+    #"/Users/ben/Development/thirdparty/vcpkg/installed/arm64-osx/debug/lib"
 
 )
 

@@ -20,7 +20,9 @@ Application* Application::Create(int argc, char** argv, void* platformData) {
 }
 
 HelloWorld::HelloWorld(int argc, char** argv, void* platformData)
-#if defined(SK_METAL)
+#if defined(SK_DIRECT3D)
+        : fBackendType(Window::kDirect3D_BackendType),
+#elif defined(SK_METAL)
         : fBackendType(Window::kMetal_BackendType),
 #elif defined(SK_GL)
         : fBackendType(Window::kNativeGL_BackendType),
@@ -57,7 +59,9 @@ void HelloWorld::updateTitle() {
     if (Window::kRaster_BackendType == fBackendType) {
         title.append("Raster");
     } else {
-#if defined(SK_METAL)
+#if defined(SK_DIRECT3D)
+        title.append("Direct3D");
+#elif defined(SK_METAL)
         title.append("Metal");
 #elif defined(SK_GL)
         title.append("GL");
@@ -137,7 +141,10 @@ void HelloWorld::onIdle() {
 bool HelloWorld::onChar(SkUnichar c, skui::ModifierKey modifiers) {
     if (' ' == c) {
         if (Window::kRaster_BackendType == fBackendType) {
-#if defined(SK_METAL)
+
+#if defined(SK_DIRECT3D)
+            fBackendType = Window::kDirect3D_BackendType;
+#elif defined(SK_METAL)
             fBackendType = Window::kMetal_BackendType;
 #elif defined(SK_GL)
             fBackendType = Window::kNativeGL_BackendType;
