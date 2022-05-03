@@ -46,6 +46,19 @@ set(export_macro         "${target_id}_API")
 set(include_path "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(source_path  "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
+set(PLATFORM_SPECIFIC_HEADERS)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND PLATFORM_SPECIFIC_HEADERS
+        ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/opaque.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/detail/harfbuzz.hpp
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+endif()
+
 set(headers
     ${include_path}/artist/affine_transform.hpp
     ${include_path}/artist/canvas.hpp
@@ -59,11 +72,52 @@ set(headers
     ${include_path}/artist/rect.hpp
     ${include_path}/artist/resources.hpp
     ${include_path}/artist/text_layout.hpp
-    #${include_path}/artist/detail/canvas_impl.hpp
+    ${include_path}/artist/detail/canvas_impl.hpp
     
-    
+    ${PLATFORM_SPECIFIC_HEADERS}
     
 )
+
+
+set(PLATFORM_SPECIFIC_SOURCES)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND PLATFORM_SPECIFIC_SOURCES
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/MetalWindowContext.mm
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/MetalWindowContext_mac.mm
+        
+        # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
+        # ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/RasterWindowContext_mac.mm
+
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/mac/Window_mac.mm
+        #${SKIA_INCLUDE_DIR}/tools/sk_app/mac/main_mac.mm
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND PLATFORM_SPECIFIC_SOURCES
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/D3D12WindowContext_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/RasterWindowContext_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/GLWindowContext_win.cpp
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
+        
+        ${SKIA_INCLUDE_DIR}/tools/sk_app/win/Window_win.cpp
+        #${SKIA_INCLUDE_DIR}/tools/sk_app/win/main_win.cpp
+        
+        ${SKIA_INCLUDE_DIR}/tools/gpu/d3d/D3DTestUtils.cpp
+        ${SKIA_INCLUDE_DIR}/src/gpu/ganesh/gl/GrGlUtil.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkUtils.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkIDChangeListener.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkUnPreMultiply.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkMatrix.cpp
+        ${SKIA_INCLUDE_DIR}/src/core/SkString.cpp
+        ${SKIA_INCLUDE_DIR}/src/utils/win/SkWGL_win.cpp
+        
+        ${CMAKE_CURRENT_SOURCE_DIR}/host/windows/skia_app.cpp
+        
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+endif()
 
 set(sources
 
@@ -78,17 +132,10 @@ set(sources
     ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/path.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/impl/skia/detail/harfbuzz.cpp
     
+    ${SKIA_INCLUDE_DIR}/tools/sk_app/Window.cpp
     ${SKIA_INCLUDE_DIR}/tools/sk_app/WindowContext.cpp
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/GLWindowContext.cpp
     
-    
-    #${SKIA_INCLUDE_DIR}/tools/sk_app/mac/GLWindowContext_mac.mm
-    #${CMAKE_CURRENT_SOURCE_DIR}/host/macos/skia_app.mm
-    
-    ${SKIA_INCLUDE_DIR}/tools/sk_app/win/GLWindowContext_win.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/host/windows/skia_app.cpp
-    
-    
+    ${PLATFORM_SPECIFIC_SOURCES}
     
 )
 
@@ -203,12 +250,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND PLATFORM_SPECIFIC_LIBRARIES
         #"-framework Foundation"
         #"-framework AppKit"
+        "-framework QuartzCore"
         "-framework ApplicationServices"
-        #"-framework Metal"
+        "-framework Metal"
         "-framework Cocoa"
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-
+    list(APPEND PLATFORM_SPECIFIC_LIBRARIES
+        "shcore" # for SetProcessDpiAwareness
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
@@ -244,22 +294,30 @@ target_link_libraries(${target}
 # Compile definitions
 # 
 
-set(ARTIST_COMPILE_DEFINITIONS
-  
-)
+set(ARTIST_COMPILE_DEFINITIONS)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND ARTIST_COMPILE_DEFINITIONS
-        GL_SILENCE_DEPRECATION
+        SK_BUILD_FOR_MAC
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     list(APPEND ARTIST_COMPILE_DEFINITIONS
         WIN32_LEAN_AND_MEAN
         NOMINMAX
         _UNICODE
+        SK_BUILD_FOR_WIN
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_UNIX
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_IOS
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    list(APPEND ARTIST_COMPILE_DEFINITIONS
+        SK_BUILD_FOR_ANDROID
+    )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 endif()
 
@@ -302,6 +360,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         "/wd4018"
         "/wd5030"
         "/wd4201"
+        "/wd4100"
         "/utf-8"
     )
 endif()
